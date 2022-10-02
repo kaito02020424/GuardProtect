@@ -90,8 +90,6 @@ events.blockDestroy.on((ev)=>{
         var cancel = "(location: "+ev.blockPos.x+" "+ev.blockPos.y+" "+ev.blockPos.z+" )"
         var pg = `§l§f----§3ProtectGuard§f---- §r§7(x`+ev.blockPos.x+`/y`+ev.blockPos.y+`/z`+ev.blockPos.z+`)\n`
         var block = fs.readFileSync("ProtectGuard/block.txt").toString().split("\n")
-        var data = ev.player.runCommand("testforblock "+ev.blockPos.x+" "+ev.blockPos.y+" "+ev.blockPos.z+ "air")
-            console.log(data)
         for (var i = 0; i < block.length; i++) {
             if(block[i].includes(cancel)){
                 let cmd = `tellraw @s {"rawtext":[{"text":"`+pg+`§70.00/h ago §l§f - `+block[i].split("(((")[0]+`"}]}`
