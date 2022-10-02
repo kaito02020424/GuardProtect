@@ -46,7 +46,7 @@ command.register('pg', 'protect world')
 })
 .overload((param, origin, output) => {
     const actor = origin.getEntity()
-    let cmd = `tellraw @s {"rawtext":[{"text":"§l§f----§3ProtectGuard§f----\n§3Version: §fProtectGuard v1.0\n§3Data: §f/bedrock_server/ProtectGuard"}]}`
+    let cmd = `tellraw @s {"rawtext":[{"text":"§l§f----§3ProtectGuard§f----\n§3Version: §fProtectGuard v1.0\n§3Data: §f/bedrock_server/ProtectGuard\n§3Download §fhttps://github.com/RuneNight/GuardProtect\n§3Lisense §fMIT"}]}`
     actor?.runCommand(cmd)
 } ,{
     option: command.enum("option.status", "status"),
