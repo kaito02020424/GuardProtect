@@ -1,6 +1,16 @@
 # GuardProtect
 Minecraft World Guard BDSX Plugin
-## Pluginの入れ方
+## プラグインの入れ方
 同階層のフォルダのindex.tsに読み込むコードを追記
 
-```impor './ProtectGuard';```
+```import './ProtectGuard';```
+## プラグインの使い方
+/pg help - Display more info for that command.
+
+/pg inspect - Turns tge block inspector on or off.
+
+/pg rollback <params> §f- Rollback block data.
+  
+/pg lookup <params> §f- Advanced block data lookup.
+  
+/pg status - Displays the plugin status.
