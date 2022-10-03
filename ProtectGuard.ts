@@ -29,7 +29,7 @@ command.register('pg', 'protect world')
         actor?.runCommand(cmd)
     }
 }, {
-    option: command.enum("option.inspect", "i"),
+    option: command.enum("ProtectGuard.inspect", "i"),
 })
 .overload((param, origin, output) => {
     const actor = origin.getEntity()
@@ -43,14 +43,14 @@ command.register('pg', 'protect world')
         actor?.runCommand(cmd)
     }
 } ,{
-    option: command.enum("option.inspect2", "inspect"),
+    option: command.enum("ProtectGuard.inspect2", "inspect"),
 })
 .overload((param, origin, output) => {
     const actor = origin.getEntity()
     let cmd = `tellraw @s {"rawtext":[{"text":"§l§f----§3ProtectGuard§f----\n§3Version: §fProtectGuard v1.0\n§3Data: §f/bedrock_server/ProtectGuard\n§3Download §fhttps://github.com/RuneNight/GuardProtect\n§3Lisense §fMIT"}]}`
     actor?.runCommand(cmd)
 } ,{
-    option: command.enum("option.status", "status"),
+    option: command.enum("ProtectGuard.status", "status"),
 })
 .overload((param, origin, output) => {
     var block = fs.readFileSync("ProtectGuard/block.txt").toString().split("\n")
@@ -65,7 +65,7 @@ command.register('pg', 'protect world')
         }
     }
 } ,{
-    option: command.enum("option.rollback", "rollback"),
+    option: command.enum("ProtectGuard.rollback", "rollback"),
     user: CxxString
 })
 .overload((param, origin) => {
@@ -80,8 +80,15 @@ command.register('pg', 'protect world')
         }
     }
 } ,{
-    option: command.enum("option.lookup", "lookup"),
+    option: command.enum("ProtectGuard.lookup", "lookup"),
     name: CxxString
+})
+.overload((param, origin) => {
+            const actor = origin.getEntity()
+            let cmd = `tellraw @s {"rawtext":[{"text":"§l§f---- §3ProtectGuard Help §f----\n§3/pg §7help §f- Display more info for that command.\n§3/pg §7 inspect §f - Turns tge block inspector on or off.\n§3/pg §7rollback §3<params> §f- Rollback block data.\n§3/pg §7lookup §3<params> §f- Advanced block data lookup.\n§3/pg §7status §f- Displays the plugin status."}]}`
+            actor?.runCommand(cmd)
+} ,{
+    option: command.enum("ProtectGuard.help", "help"),
 });
 
 
