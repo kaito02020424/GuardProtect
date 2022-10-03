@@ -7,7 +7,7 @@ Minecraft World Guard BDSX Plugin
 ## プラグインの使い方
 /pg help - Display more info for that command.
 
-/pg inspect - Turns tge block inspector on or off.
+/pg inspect - Turns the block inspector on or off.
 
 /pg rollback <params> §f- Rollback block data.
   
