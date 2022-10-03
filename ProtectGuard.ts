@@ -3,6 +3,7 @@ import { command } from "bdsx/command";
 import { CANCEL } from 'bdsx/common';
 import * as fs from 'fs';
 import { CxxString } from "bdsx/nativetype";
+import { ItemStack } from 'bdsx/bds/inventory';
 
 var list: string[] = [] 
 var a=true
@@ -125,13 +126,13 @@ events.blockPlace.on((ev)=>{
                 }
             }
             if(a){
-                var blocks = ev.blockSource.getBlock(ev.blockPos).getName().replace("minecraft:","")
+                var blocks = ev.block.getName().replace("minecraft:","")
                 let cmd = `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- No block data found at `+blocks+`"}]}`
                     ev.player.runCommand(cmd)
             }
             return CANCEL
     } else {
-        var blocks = ev.blockSource.getBlock(ev.blockPos).getName().replace("minecraft:","")
+        var blocks = ev.block.getName().replace("minecraft:","")
         list.push("§l§3"+ev.player.getName()+" §fplaced§3 "+blocks+" (((location: "+ev.blockPos.x+" "+ev.blockPos.y+" "+ev.blockPos.z+" )))")
         fs.appendFile('ProtectGuard/block.txt', list[list.length-1]+"\n", () => {});
     }
