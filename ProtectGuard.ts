@@ -11,7 +11,7 @@ const p = "ProtectGuard/block.txt";
 if( fs.existsSync( p ) ){} else {
 fs.mkdir('ProtectGuard', () => {
     fs.writeFile('ProtectGuard/block.txt', '', function () {
-        console.log('create ProtectGuard/block.txt');
+        console.log('Create ProtectGuard/block.txt');
     });
 });
 }
@@ -71,7 +71,7 @@ command.register('pg', 'protect world')
     var block = fs.readFileSync("ProtectGuard/block.txt").toString().split("\n")
     var pg = `§l§f----§3ProtectGuard§f----§r\n`
     for (var i = 0; i < block.length; i++) {
-        if(block[i].includes(param.user)){
+        if(block[i].includes(param.name)){
             const actor = origin.getEntity()
             let cmd = `tellraw @s {"rawtext":[{"text":"`+pg+`§70.00/h ago §l§f - `+block[i].split("(((")[0]+"§r§7(x"+block[i].split(" ")[4]+"/y"+block[i].split(" ")[5]+"/z"+block[i].split(" ")[6]+`)"}]}`
             pg =""
@@ -80,7 +80,7 @@ command.register('pg', 'protect world')
     }
 } ,{
     option: command.enum("option.lookup", "lookup"),
-    user: CxxString
+    name: CxxString
 });
 
 
@@ -99,13 +99,13 @@ events.blockDestroy.on((ev)=>{
             }
         }
         if(a){
-            var blocks = ev.itemStack.getName()
+            var blocks = ev.blockSource.getBlock(ev.blockPos).getName().replace("minecraft:","")
             let cmd = `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- No block data found at `+blocks+`"}]}`
                 ev.player.runCommand(cmd)
         }
         return CANCEL
     } else {
-        var blocks = ev.itemStack.getName().replace("minecraft:","")
+        var blocks = ev.blockSource.getBlock(ev.blockPos).getName().replace("minecraft:","")
         list.push("§l§3"+ev.player.getName()+" §fremoved§3 "+blocks+" (((location: "+ev.blockPos.x+" "+ev.blockPos.y+" "+ev.blockPos.z+" )))")
         fs.appendFile('ProtectGuard/block.txt', list[list.length-1]+"\n", () => {});
     }
@@ -125,14 +125,18 @@ events.blockPlace.on((ev)=>{
                 }
             }
             if(a){
-                var blocks = ev.block.getName().replace("minecraft:","")
+                var blocks = ev.blockSource.getBlock(ev.blockPos).getName().replace("minecraft:","")
                 let cmd = `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- No block data found at `+blocks+`"}]}`
                     ev.player.runCommand(cmd)
             }
             return CANCEL
     } else {
-        var blocks = ev.block.getName().replace("minecraft:","")
+        var blocks = ev.blockSource.getBlock(ev.blockPos).getName().replace("minecraft:","")
         list.push("§l§3"+ev.player.getName()+" §fplaced§3 "+blocks+" (((location: "+ev.blockPos.x+" "+ev.blockPos.y+" "+ev.blockPos.z+" )))")
         fs.appendFile('ProtectGuard/block.txt', list[list.length-1]+"\n", () => {});
     }
+})
+
+events.playerJoin.on((ev)=>{
+    ev.player.runCommand("tag @s remove inspect")
 })
