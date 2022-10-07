@@ -59,37 +59,72 @@ const RegisterCmd = function () {
     .overload(
       (param, origin, output) => {
         const actor = origin.getEntity();
-        if (param.action == "+" || param.action == "-" || param.action == "*") {
+        if (
+          param.action == "place" ||
+          param.action == "remove" ||
+          param.action == "all"
+        ) {
           var pg = `§l§f----§3ProtectGuard Restore§f----§r\n`;
+          a = true;
+          let rba = "";
           try {
-            if (param.action == "+") {
-              jsi;
-              jsonObject.masterData.filter((item: any) => {
-                if (
-                  item.Name == param.user &&
-                  item.block == param.block &&
-                  item.rb == "b"
-                )
-                  return true;
-              }) || {};
-            } else if (param.action == "-") {
-              jsi;
-              jsonObject.masterData.filter((item: any) => {
-                if (
-                  item.Name == param.user &&
-                  item.block == param.block &&
-                  item.rb == "r"
-                )
-                  return true;
-              }) || {};
-            } else if (param.action == "*") {
-              jsi;
-              jsonObject.masterData.filter((item: any) => {
-                if (item.Name == param.user && item.block == param.block)
-                  return true;
-              }) || {};
+            jsonObject = readJson();
+          } catch (e) {
+            console.log(e);
+          }
+          try {
+            if (param.action == "place") {
+              if (param.block != "all") {
+                jsi =
+                  jsonObject.masterData.filter((item: any) => {
+                    if (
+                      item.Name == param.user &&
+                      item.block == param.block &&
+                      item.rb == "b"
+                    )
+                      return true;
+                  }) || {};
+              } else {
+                jsi =
+                  jsonObject.masterData.filter((item: any) => {
+                    if (item.Name == param.user && item.rb == "b") return true;
+                  }) || {};
+              }
+            } else if (param.action == "remove") {
+              if (param.block != "all") {
+                jsi =
+                  jsonObject.masterData.filter((item: any) => {
+                    if (
+                      item.Name == param.user &&
+                      item.block == param.block &&
+                      item.rb == "r"
+                    )
+                      return true;
+                  }) || {};
+              } else {
+                jsi =
+                  jsonObject.masterData.filter((item: any) => {
+                    if (item.Name == param.user && item.rb == "b") return true;
+                  }) || {};
+              }
+            } else if (param.action == "all") {
+              if (param.block != "all") {
+                jsi =
+                  jsonObject.masterData.filter((item: any) => {
+                    if (item.Name == param.user) return true;
+                  }) || {};
+              } else {
+                jsi =
+                  jsonObject.masterData.filter((item: any) => {
+                    if (
+                      item.Name == param.user &&
+                      item.block == param.block &&
+                      item.rb == "b"
+                    )
+                      return true;
+                  }) || {};
+              }
             }
-            let rba = "";
             for (const i in jsi) {
               if (jsi[i].rb == "b") {
                 rba = "placed";
@@ -202,7 +237,11 @@ const RegisterCmd = function () {
     .overload(
       (param, origin) => {
         const actor = origin.getEntity();
-        if (param.action == "+" || param.action == "-" || param.action == "*") {
+        if (
+          param.action == "place" ||
+          param.action == "remove" ||
+          param.action == "all"
+        ) {
           var pg = `§l§f----§3ProtectGuard Rollback§f----§r\n`;
           a = true;
           let rba = "";
@@ -212,32 +251,52 @@ const RegisterCmd = function () {
             console.log(e);
           }
           try {
-            if (param.action == "+") {
-              jsi;
-              jsonObject.masterData.filter((item: any) => {
-                if (
-                  item.Name == param.user &&
-                  item.block == param.block &&
-                  item.rb == "b"
-                )
-                  return true;
-              }) || {};
-            } else if (param.action == "-") {
-              jsi;
-              jsonObject.masterData.filter((item: any) => {
-                if (
-                  item.Name == param.user &&
-                  item.block == param.block &&
-                  item.rb == "r"
-                )
-                  return true;
-              }) || {};
-            } else if (param.action == "*") {
-              jsi;
-              jsonObject.masterData.filter((item: any) => {
-                if (item.Name == param.user && item.block == param.block)
-                  return true;
-              }) || {};
+            if (param.action == "place") {
+              if (param.block != "all") {
+                jsi =
+                  jsonObject.masterData.filter((item: any) => {
+                    if (
+                      item.Name == param.user &&
+                      item.block == param.block &&
+                      item.rb == "b"
+                    )
+                      return true;
+                  }) || {};
+              } else {
+                jsi =
+                  jsonObject.masterData.filter((item: any) => {
+                    if (item.Name == param.user && item.rb == "b") return true;
+                  }) || {};
+              }
+            } else if (param.action == "remove") {
+              if (param.block != "all") {
+                jsi =
+                  jsonObject.masterData.filter((item: any) => {
+                    if (
+                      item.Name == param.user &&
+                      item.block == param.block &&
+                      item.rb == "r"
+                    )
+                      return true;
+                  }) || {};
+              } else {
+                jsi =
+                  jsonObject.masterData.filter((item: any) => {
+                    if (item.Name == param.user && item.rb == "b") return true;
+                  }) || {};
+              }
+            } else if (param.action == "all") {
+              if (param.block != "all") {
+                jsi =
+                  jsonObject.masterData.filter((item: any) => {
+                    if (item.Name == param.user) return true;
+                  }) || {};
+              } else {
+                jsi =
+                  jsonObject.masterData.filter((item: any) => {
+                    if (item.Name == param.user && item.rb == "b") return true;
+                  }) || {};
+              }
             }
             for (const i in jsi) {
               if (jsi[i].rb == "b") {
