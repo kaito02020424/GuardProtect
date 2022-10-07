@@ -5,6 +5,7 @@ Add code to index.ts in the same hierarchical folder to read
 
 ```import './ProtectGuard';```
 ## How to insert plugins
+
 /pg help - Display more info for that command.
 
 /pg inspect - Turns the block inspector on or off.
