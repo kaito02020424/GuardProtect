@@ -10,11 +10,13 @@ Add code to index.ts in the same hierarchical folder to read
 /pg help - Display more info for that command.
 
 /pg inspect - Turns the block inspector on or off.
-
-/pg rollback <params> - Rollback block data.
-
-/pg restore <params> - Restore block data.
   
 /pg lookup <params> - Advanced block data lookup.
   
 /pg status - Displays the plugin status.
+
+## Commands under development
+
+/pg rollback <params> - Rollback block data.
+
+/pg restore <params> - Restore block data.
