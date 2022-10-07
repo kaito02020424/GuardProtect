@@ -1,10 +1,10 @@
 # GuardProtect
 Minecraft World Guard BDSX Plugin
 ## プラグインの入れ方
-同階層のフォルダのindex.tsに読み込むコードを追記
+Add code to index.ts in the same hierarchical folder to read
 
 ```import './ProtectGuard';```
-## プラグインの使い方
+## How to insert plugins
 /pg help - Display more info for that command.
 
 /pg inspect - Turns the block inspector on or off.
