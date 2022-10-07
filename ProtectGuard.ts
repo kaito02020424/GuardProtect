@@ -69,9 +69,75 @@ command
       option: command.enum("ProtectGuard.status", "status"),
     }
   )
-  .overload((param, origin, output) => {}, {
-    option: command.enum("ProtectGuard.rollback", "rollback"),
-  })
+  .overload(
+    (param, origin, output) => {
+      const actor = origin.getEntity();
+      var pg = `§l§f----§3ProtectGuard Restore§f----§r\n`;
+      let jsi;
+      try {
+        const jsi: object =
+          jsonObject.masterData.filter((item: any) => {
+            if (item.Name == param.user && item.block == param.block) return true;
+          }) || {};
+        let rba = "";
+        for (const i in jsi) {
+          if (jsi[i].rb == "b") {
+            rba = "placed";
+            actor?.runCommand(
+              "setblock " +
+                jsi[i].x +
+                " " +
+                jsi[i].y +
+                " " +
+                jsi[i].z +
+                " " +
+                jsi[i].block
+            );
+          } else {
+            rba = "removed";
+            actor?.runCommand(
+              "setblock " + jsi[i].x + " " + jsi[i].y + " " + jsi[i].z + " air"
+            );
+          }
+          let cmd =
+            `tellraw @s {"rawtext":[{"text":"` +
+            pg +
+            `§7` +
+            jsi[i].Now +
+            ` §l§f - §3` +
+            jsi[i].Name +
+            ` §f` +
+            rba +
+            ` §3` +
+            jsi[i].block +
+            ` §r§7(location: ` +
+            jsi[i].x +
+            `,` +
+            jsi[i].y +
+            `,` +
+            jsi[i].z +
+            ` )"}]}`;
+          pg = "";
+          actor?.runCommand(cmd);
+          a = false;
+        }
+      } catch (e) {
+        console.log(e);
+      }
+      if (a) {
+        let cmd =
+          `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- No block data found at ` +
+          param.user +
+          `"}]}`;
+        actor?.runCommand(cmd);
+      }
+    },
+    {
+      option: command.enum("ProtectGuard.restore", "restore"),
+      user: CxxString,
+      block: CxxString
+    }
+  )
   .overload(
     (param, origin) => {
       const actor = origin.getEntity();
@@ -97,7 +163,9 @@ command
           let cmd =
             `tellraw @s {"rawtext":[{"text":"` +
             pg +
-            `§70.00/h ago §l§f - §3` +
+            `§7` +
+            jsi[i].Now +
+            ` §l§f - §3` +
             jsi[i].Name +
             ` §f` +
             rba +
@@ -134,7 +202,7 @@ command
   .overload(
     (param, origin) => {
       const actor = origin.getEntity();
-      var pg = `§l§f----§3ProtectGuard§f----§r\n`;
+      var pg = `§l§f----§3ProtectGuard Rollback§f----§r\n`;
       a = true;
       let rba = "";
       try {
@@ -145,18 +213,33 @@ command
       try {
         const jsi: object =
           jsonObject.masterData.filter((item: any) => {
-            if (item.block == param.blockname) return true;
+            if (item.Name == param.user && item.block == param.block) return true;
           }) || {};
         for (const i in jsi) {
           if (jsi[i].rb == "b") {
             rba = "placed";
+            actor?.runCommand(
+              "setblock " + jsi[i].x + " " + jsi[i].y + " " + jsi[i].z + " air"
+            );
           } else {
             rba = "removed";
+            actor?.runCommand(
+              "setblock " +
+                jsi[i].x +
+                " " +
+                jsi[i].y +
+                " " +
+                jsi[i].z +
+                " " +
+                jsi[i].block
+            );
           }
           let cmd =
             `tellraw @s {"rawtext":[{"text":"` +
             pg +
-            `§70.00/h ago §l§f - §3` +
+            `§7` +
+            jsi[i].Now +
+            ` ago §l§f - §3` +
             jsi[i].Name +
             ` §f` +
             rba +
@@ -179,15 +262,15 @@ command
       if (a) {
         let cmd =
           `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- No block data found at ` +
-          param.text +
+          param.user +
           `"}]}`;
         actor?.runCommand(cmd);
       }
     },
     {
-      option: command.enum("ProtectGuard.lookup", "lookup"),
-      blockname: command.enum("ProtectGuard.lookup.blockName", "blockname"),
-      text: CxxString,
+      option: command.enum("ProtectGuard.rollback", "rollback"),
+      user: CxxString,
+      block: CxxString
     }
   )
   .overload(
@@ -216,7 +299,9 @@ command
           let cmd =
             `tellraw @s {"rawtext":[{"text":"` +
             pg +
-            `§70.00/h ago §l§f - §3` +
+            `§7` +
+            jsi[i].Now +
+            ` §l§f - §3` +
             jsi[i].Name +
             ` §f` +
             rba +
@@ -286,7 +371,9 @@ command
           let cmd =
             `tellraw @s {"rawtext":[{"text":"` +
             pg +
-            `§70.00/h ago §l§f - §3` +
+            `§7` +
+            jsi[i].Now +
+            ` §l§f - §3` +
             jsi[i].Name +
             ` §f` +
             rba +
@@ -379,7 +466,9 @@ events.blockDestroy.on((ev) => {
         let cmd =
           `tellraw @s {"rawtext":[{"text":"` +
           pg +
-          `§70.00/h ago §l§f - §3` +
+          `§7` +
+          jsi[i].Now +
+          ` §l§f - §3` +
           jsi[i].Name +
           ` §f` +
           rba +
@@ -387,9 +476,9 @@ events.blockDestroy.on((ev) => {
           jsi[i].block +
           ` §r§7(location: ` +
           jsi[i].x +
-          `,` +
+          `/` +
           jsi[i].y +
-          `,` +
+          `/` +
           jsi[i].z +
           ` )"}]}`;
         pg = "";
@@ -484,7 +573,9 @@ events.blockPlace.on((ev) => {
         let cmd =
           `tellraw @s {"rawtext":[{"text":"` +
           pg +
-          `§70.00/h ago §l§f - §3` +
+          `§7` +
+          jsi[i].Now +
+          ` §l§f - §3` +
           jsi[i].Name +
           ` §f` +
           rba +
@@ -492,9 +583,9 @@ events.blockPlace.on((ev) => {
           jsi[i].block +
           ` §r§7(location: ` +
           jsi[i].x +
-          `,` +
+          `/` +
           jsi[i].y +
-          `,` +
+          `/` +
           jsi[i].z +
           ` )"}]}`;
         pg = "";
