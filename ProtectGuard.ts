@@ -356,6 +356,10 @@ const RegisterCmd = function () {
         var pg = `§l§f----§3ProtectGuard§f----§r\n`;
         a = true;
         let rba = "";
+        let x2 = actor?.getPosition().x;
+        let y2 = actor?.getPosition().y;
+        let z2 = actor?.getPosition().x;
+
         try {
           jsonObject = readJson();
         } catch (e) {
@@ -364,7 +368,18 @@ const RegisterCmd = function () {
         try {
           jsi =
             jsonObject.masterData.filter((item: any) => {
-              return true;
+              if (x2 != undefined && y2 != undefined && z2 != undefined) {
+                x2 = Math.round(x2);
+                y2 = Math.round(y2);
+                z2 = Math.round(z2);
+                if (item.x < x2 + param.r || item.x < x2 - param.r) {
+                  if (item.y < y2 + param.r || item.y < y2 - param.r) {
+                    if (item.z < z2 + param.r || item.z < z2 - param.r) {
+                      return true;
+                    }
+                  }
+                }
+              }
             }) || {};
           for (const i in jsi) {
             if (jsi[i].rb == "b") {
@@ -390,7 +405,7 @@ const RegisterCmd = function () {
           console.log(e);
         }
         if (a) {
-          let xyz = x + "/" + y + "/" + z;
+          let xyz = x2 + "/" + y2 + "/" + z2;
           cmd = Nodata(xyz);
           actor?.runCommand(cmd);
         }
