@@ -3,9 +3,6 @@ import { command } from "bdsx/command";
 import { CANCEL } from "bdsx/common";
 import * as fs from "fs";
 import { CxxString, int32_t } from "bdsx/nativetype";
-import { ItemStack } from "bdsx/bds/inventory";
-import { readBuilderProgram } from "typescript";
-import path, { dirname } from "path";
 
 var a = true;
 var masterData: {
@@ -18,51 +15,37 @@ var masterData: {
   date: string;
 }[] = [];
 const date = new Date();
-let jsonObject;
-let x;
-let y;
-let z;
+let jsonObject: any;
+let x: number;
+let y: number;
+let z: number;
+let cmd: string;
+let jsi: object;
 
 command
   .register("pg", "protect world")
   .overload(
     (param, origin, output) => {
       const actor = origin.getEntity();
-      if (actor?.hasTag("inspect")) {
-        let cmd = `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- Inspect now disabled"}]}`;
-        actor?.runCommand("tag @s remove inspect");
-        actor?.runCommand(cmd);
-      } else {
-        let cmd = `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- Inspect now enabled"}]}`;
-        actor?.runCommand("tag @s add inspect");
-        actor?.runCommand(cmd);
-      }
+      Inspect(actor);
     },
     {
-      option: command.enum("ProtectGuard.inspect", "i"),
+      option: command.enum("ProtectGuard.i", "i"),
     }
   )
   .overload(
     (param, origin, output) => {
       const actor = origin.getEntity();
-      if (actor?.hasTag("inspect")) {
-        let cmd = `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- Inspect now disabled"}]}`;
-        actor?.runCommand("tag @s remove inspect");
-        actor?.runCommand(cmd);
-      } else {
-        let cmd = `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- Inspect now enabled"}]}`;
-        actor?.runCommand("tag @s add inspect");
-        actor?.runCommand(cmd);
-      }
+      Inspect(actor);
     },
     {
-      option: command.enum("ProtectGuard.inspect2", "inspect"),
+      option: command.enum("ProtectGuard.inspect", "inspect"),
     }
   )
   .overload(
     (param, origin, output) => {
       const actor = origin.getEntity();
-      let cmd = `tellraw @s {"rawtext":[{"text":"§l§f----§3ProtectGuard§f----\n§3Version: §fProtectGuard v1.0\n§3Data: §f/bedrock_server/ProtectGuard\n§3Download §fhttps://github.com/RuneNight/GuardProtect\n§3Lisense §fMIT"}]}`;
+      cmd = `tellraw @s {"rawtext":[{"text":"§l§f----§3ProtectGuard§f----\n§3Version: §fProtectGuard v1.0\n§3Data: §f/bedrock_server/ProtectGuard\n§3Download §fhttps://github.com/RuneNight/GuardProtect\n§3Lisense §fMIT"}]}`;
       actor?.runCommand(cmd);
     },
     {
@@ -73,11 +56,11 @@ command
     (param, origin, output) => {
       const actor = origin.getEntity();
       var pg = `§l§f----§3ProtectGuard Restore§f----§r\n`;
-      let jsi;
       try {
-        const jsi: object =
+        jsi =
           jsonObject.masterData.filter((item: any) => {
-            if (item.Name == param.user && item.block == param.block) return true;
+            if (item.Name == param.user && item.block == param.block)
+              return true;
           }) || {};
         let rba = "";
         for (const i in jsi) {
@@ -99,24 +82,16 @@ command
               "setblock " + jsi[i].x + " " + jsi[i].y + " " + jsi[i].z + " air"
             );
           }
-          let cmd =
-            `tellraw @s {"rawtext":[{"text":"` +
-            pg +
-            `§7` +
-            jsi[i].Now +
-            ` §l§f - §3` +
-            jsi[i].Name +
-            ` §f` +
-            rba +
-            ` §3` +
-            jsi[i].block +
-            ` §r§7(location: ` +
-            jsi[i].x +
-            `,` +
-            jsi[i].y +
-            `,` +
-            jsi[i].z +
-            ` )"}]}`;
+          cmd = Cmd(
+            pg,
+            jsi[i].Now,
+            jsi[i].Name,
+            rba,
+            jsi[i].block,
+            jsi[i].x,
+            jsi[i].y,
+            jsi[i].z
+          );
           pg = "";
           actor?.runCommand(cmd);
           a = false;
@@ -125,17 +100,14 @@ command
         console.log(e);
       }
       if (a) {
-        let cmd =
-          `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- No block data found at ` +
-          param.user +
-          `"}]}`;
+        cmd = Nodata(param.user);
         actor?.runCommand(cmd);
       }
     },
     {
       option: command.enum("ProtectGuard.restore", "restore"),
       user: CxxString,
-      block: CxxString
+      block: CxxString,
     }
   )
   .overload(
@@ -145,39 +117,31 @@ command
       a = true;
       let rba = "";
       try {
-        jsonObject = JSON.parse(fs.readFileSync("./block.json", "utf8"));
+        jsonObject = readJson();
       } catch (e) {
         console.log(e);
       }
       try {
-        const jsi: object =
-          jsonObject.masterData.filter((item: any) => {
-            if (item.Name == param.text) return true;
-          }) || {};
+        jsi;
+        jsonObject.masterData.filter((item: any) => {
+          if (item.Name == param.text) return true;
+        }) || {};
         for (const i in jsi) {
           if (jsi[i].rb == "b") {
             rba = "placed";
           } else {
             rba = "removed";
           }
-          let cmd =
-            `tellraw @s {"rawtext":[{"text":"` +
-            pg +
-            `§7` +
-            jsi[i].Now +
-            ` §l§f - §3` +
-            jsi[i].Name +
-            ` §f` +
-            rba +
-            ` §3` +
-            jsi[i].block +
-            ` §r§7(location: ` +
-            jsi[i].x +
-            `,` +
-            jsi[i].y +
-            `,` +
-            jsi[i].z +
-            ` )"}]}`;
+          cmd = Cmd(
+            pg,
+            jsi[i].Now,
+            jsi[i].Name,
+            rba,
+            jsi[i].block,
+            jsi[i].x,
+            jsi[i].y,
+            jsi[i].z
+          );
           pg = "";
           actor?.runCommand(cmd);
           a = false;
@@ -186,10 +150,7 @@ command
         console.log(e);
       }
       if (a) {
-        let cmd =
-          `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- No block data found at ` +
-          param.text +
-          `"}]}`;
+        cmd = Nodata(param.text);
         actor?.runCommand(cmd);
       }
     },
@@ -206,15 +167,15 @@ command
       a = true;
       let rba = "";
       try {
-        jsonObject = JSON.parse(fs.readFileSync("./block.json", "utf8"));
+        jsonObject = readJson();
       } catch (e) {
         console.log(e);
       }
       try {
-        const jsi: object =
-          jsonObject.masterData.filter((item: any) => {
-            if (item.Name == param.user && item.block == param.block) return true;
-          }) || {};
+        jsi;
+        jsonObject.masterData.filter((item: any) => {
+          if (item.Name == param.user && item.block == param.block) return true;
+        }) || {};
         for (const i in jsi) {
           if (jsi[i].rb == "b") {
             rba = "placed";
@@ -234,24 +195,16 @@ command
                 jsi[i].block
             );
           }
-          let cmd =
-            `tellraw @s {"rawtext":[{"text":"` +
-            pg +
-            `§7` +
-            jsi[i].Now +
-            ` ago §l§f - §3` +
-            jsi[i].Name +
-            ` §f` +
-            rba +
-            ` §3` +
-            jsi[i].block +
-            ` §r§7(location: ` +
-            jsi[i].x +
-            `,` +
-            jsi[i].y +
-            `,` +
-            jsi[i].z +
-            ` )"}]}`;
+          cmd = Cmd(
+            pg,
+            jsi[i].Now,
+            jsi[i].Name,
+            rba,
+            jsi[i].block,
+            jsi[i].x,
+            jsi[i].y,
+            jsi[i].z
+          );
           pg = "";
           actor?.runCommand(cmd);
           a = false;
@@ -260,17 +213,14 @@ command
         console.log(e);
       }
       if (a) {
-        let cmd =
-          `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- No block data found at ` +
-          param.user +
-          `"}]}`;
+        cmd = Nodata(param.user);
         actor?.runCommand(cmd);
       }
     },
     {
       option: command.enum("ProtectGuard.rollback", "rollback"),
       user: CxxString,
-      block: CxxString
+      block: CxxString,
     }
   )
   .overload(
@@ -280,13 +230,13 @@ command
       a = true;
       let rba = "";
       try {
-        jsonObject = JSON.parse(fs.readFileSync("./block.json", "utf8"));
+        jsonObject = readJson();
       } catch (e) {
         console.log(e);
       }
       try {
-        const jsi: object =
-          jsonObject.masterData.filter((item: any) => {
+        jsi =
+          jsonObject.MasterData.filter((item: any) => {
             if (item.x == param.x && item.y == param.y && item.z == param.z)
               return true;
           }) || {};
@@ -296,40 +246,24 @@ command
           } else {
             rba = "removed";
           }
-          let cmd =
-            `tellraw @s {"rawtext":[{"text":"` +
-            pg +
-            `§7` +
-            jsi[i].Now +
-            ` §l§f - §3` +
-            jsi[i].Name +
-            ` §f` +
-            rba +
-            ` §3` +
-            jsi[i].block +
-            ` §r§7(location: ` +
-            jsi[i].x +
-            `,` +
-            jsi[i].y +
-            `,` +
-            jsi[i].z +
-            ` )"}]}`;
+          cmd = Cmd(
+            pg,
+            jsi[i].Now,
+            jsi[i].Name,
+            rba,
+            jsi[i].block,
+            jsi[i].x,
+            jsi[i].y,
+            jsi[i].z
+          );
           pg = "";
           actor?.runCommand(cmd);
           a = false;
         }
-      } catch (e) {
-        console.log(e);
-      }
+      } catch (e) {}
       if (a) {
-        let cmd =
-          `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- No block data found at ` +
-          param.x +
-          `/` +
-          param.y +
-          `/` +
-          param.z +
-          `"}]}`;
+        let xyz = param.x + `/` + param.y + `/` + param.z;
+        cmd = Nodata(xyz);
         actor?.runCommand(cmd);
       }
     },
@@ -348,17 +282,12 @@ command
       a = true;
       let rba = "";
       try {
-        jsonObject = JSON.parse(fs.readFileSync("./block.json", "utf8"));
+        jsonObject = readJson();
       } catch (e) {
         console.log(e);
       }
       try {
-        let x = actor?.getPosition().x;
-        let x2 = actor?.getPosition().x;
-        let y = actor?.getPosition().y;
-        let z = actor?.getPosition().z;
-
-        const jsi: object =
+        jsi =
           jsonObject.masterData.filter((item: any) => {
             return true;
           }) || {};
@@ -368,24 +297,16 @@ command
           } else {
             rba = "removed";
           }
-          let cmd =
-            `tellraw @s {"rawtext":[{"text":"` +
-            pg +
-            `§7` +
-            jsi[i].Now +
-            ` §l§f - §3` +
-            jsi[i].Name +
-            ` §f` +
-            rba +
-            ` §3` +
-            jsi[i].block +
-            ` §r§7(location: ` +
-            jsi[i].x +
-            `,` +
-            jsi[i].y +
-            `,` +
-            jsi[i].z +
-            ` )"}]}`;
+          cmd = Cmd(
+            pg,
+            jsi[i].Now,
+            jsi[i].Name,
+            rba,
+            jsi[i].block,
+            jsi[i].x,
+            jsi[i].y,
+            jsi[i].z
+          );
           pg = "";
           actor?.runCommand(cmd);
           a = false;
@@ -394,14 +315,8 @@ command
         console.log(e);
       }
       if (a) {
-        let cmd =
-          `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- No block data found at ` +
-          x +
-          `/` +
-          y +
-          `/` +
-          z +
-          `"}]}`;
+        let xyz = x + "/" + y + "/" + z;
+        cmd = Nodata(xyz);
         actor?.runCommand(cmd);
       }
     },
@@ -413,20 +328,11 @@ command
   .overload(
     (param, origin) => {
       const actor = origin.getEntity();
-      let cmd = `tellraw @s {"rawtext":[{"text":"§l§f---- §3ProtectGuard Help §f----\n§3/pg §7help §f- Display more info for that command.\n§3/pg §7inspect §f - Turns the block inspector on or off.\n§3/pg §7rollback §3<params> §f- Rollback block data.\n§3/pg §7lookup §3<params> §f- Advanced block data lookup.\n§3/pg §7status §f- Displays the plugin status."}]}`;
+      cmd = `tellraw @s {"rawtext":[{"text":"§l§f---- §3ProtectGuard Help §f----\n§3/pg §7help §f- Display more info for that command.\n§3/pg §7inspect §f - Turns the block inspector on or off.\n§3/pg §7rollback §3<params> §f- Rollback block data.\n§3/pg §7lookup §3<params> §f- Advanced block data lookup.\n§3/pg §7status §f- Displays the plugin status."}]}`;
       actor?.runCommand(cmd);
     },
     {
       option: command.enum("ProtectGuard.help", "help"),
-    }
-  )
-  .overload(
-    (param, origin) => {
-      const actor = origin.getEntity();
-      let cmd = `tellraw @s {"rawtext":[{"text":""}]}`;
-    },
-    {
-      option: command.enum("ProtectGuard.near", "near"),
     }
   );
 
@@ -443,12 +349,12 @@ events.blockDestroy.on((ev) => {
       `)\n`;
     let rba = "";
     try {
-      jsonObject = JSON.parse(fs.readFileSync("./block.json", "utf8"));
+      jsonObject = readJson();
     } catch (e) {
       console.log(e);
     }
     try {
-      const jsi: object =
+      jsi =
         jsonObject.masterData.filter((item: any) => {
           if (
             item.x == ev.blockPos.x &&
@@ -463,63 +369,31 @@ events.blockDestroy.on((ev) => {
         } else {
           rba = "removed";
         }
-        let cmd =
-          `tellraw @s {"rawtext":[{"text":"` +
-          pg +
-          `§7` +
-          jsi[i].Now +
-          ` §l§f - §3` +
-          jsi[i].Name +
-          ` §f` +
-          rba +
-          ` §3` +
-          jsi[i].block +
-          ` §r§7(location: ` +
-          jsi[i].x +
-          `/` +
-          jsi[i].y +
-          `/` +
-          jsi[i].z +
-          ` )"}]}`;
+
+        cmd = Cmd(
+          pg,
+          jsi[i].Now,
+          jsi[i].Name,
+          rba,
+          jsi[i].block,
+          jsi[i].x,
+          jsi[i].y,
+          jsi[i].z
+        );
         pg = "";
         ev.player.runCommand(cmd);
         a = false;
       }
-    } catch (e) {
-      console.log(e);
-    }
+    } catch (e) {}
     if (a) {
-      var blocks = ev.blockSource
-        .getBlock(ev.blockPos)
-        .getName()
-        .replace("minecraft:", "");
-      let cmd =
-        `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- No block data found at ` +
-        blocks +
-        `"}]}`;
+      cmd = Nodata(
+        ev.blockSource.getBlock(ev.blockPos).getName().replace("minecraft:", "")
+      );
       ev.player.runCommand(cmd);
     }
     return CANCEL;
   } else {
-    let TYear: string = date.getFullYear().toString();
-    var TMonth2: number = date.getMonth() + 1;
-    var TMonth: string = TMonth2.toString();
-    let TDate: string = date.getDate().toString();
-    let THour: string = date.getHours().toString();
-    let TMinutes: string = date.getMinutes().toString();
-    let TSeconds: string = date.getSeconds().toString();
-    var Now: string =
-      TYear +
-      "," +
-      TMonth +
-      "," +
-      TDate +
-      "," +
-      THour +
-      "," +
-      TMinutes +
-      "," +
-      TSeconds;
+    var Now = TimeNow();
     var data = {
       Name: ev.player.getName(),
       rb: "r",
@@ -533,7 +407,7 @@ events.blockDestroy.on((ev) => {
       date: Now,
     };
     masterData.push(data);
-    let masterData2 = JSON.stringify({ masterData }, null, " ");
+    let masterData2: string = JSON.stringify({ masterData }, null, " ");
     fs.writeFileSync("./block.json", masterData2);
   }
 });
@@ -550,12 +424,10 @@ events.blockPlace.on((ev) => {
       `)\n`;
     let rba = "";
     try {
-      jsonObject = JSON.parse(fs.readFileSync("./block.json", "utf8"));
-    } catch (e) {
-      console.log(e);
-    }
+      jsonObject = readJson();
+    } catch (e) {}
     try {
-      const jsi: object =
+      jsi =
         jsonObject.masterData.filter((item: any) => {
           if (
             item.x == ev.blockPos.x &&
@@ -570,60 +442,28 @@ events.blockPlace.on((ev) => {
         } else {
           rba = "removed";
         }
-        let cmd =
-          `tellraw @s {"rawtext":[{"text":"` +
-          pg +
-          `§7` +
-          jsi[i].Now +
-          ` §l§f - §3` +
-          jsi[i].Name +
-          ` §f` +
-          rba +
-          ` §3` +
-          jsi[i].block +
-          ` §r§7(location: ` +
-          jsi[i].x +
-          `/` +
-          jsi[i].y +
-          `/` +
-          jsi[i].z +
-          ` )"}]}`;
+        cmd = Cmd(
+          pg,
+          jsi[i].Now,
+          jsi[i].Name,
+          rba,
+          jsi[i].block,
+          jsi[i].x,
+          jsi[i].y,
+          jsi[i].z
+        );
         pg = "";
         ev.player.runCommand(cmd);
         a = false;
       }
-    } catch (e) {
-      console.log(e);
-    }
+    } catch (e) {}
     if (a) {
-      var blocks = ev.block.getName().replace("minecraft:", "");
-      let cmd =
-        `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- No block data found at ` +
-        blocks +
-        `"}]}`;
+      cmd = Nodata(ev.block.getName().replace("minecraft:", ""));
       ev.player.runCommand(cmd);
     }
     return CANCEL;
   } else {
-    let TYear: string = date.getFullYear().toString();
-    var TMonth2: number = date.getMonth() + 1;
-    var TMonth: string = TMonth2.toString();
-    let TDate: string = date.getDate().toString();
-    let THour: string = date.getHours().toString();
-    let TMinutes: string = date.getMinutes().toString();
-    let TSeconds: string = date.getSeconds().toString();
-    var Now: string =
-      TYear +
-      "," +
-      TMonth +
-      "," +
-      TDate +
-      "," +
-      THour +
-      "," +
-      TMinutes +
-      "," +
-      TSeconds;
+    var Now = TimeNow();
     var data = {
       Name: ev.player.getName(),
       rb: "b",
@@ -634,7 +474,7 @@ events.blockPlace.on((ev) => {
       date: Now,
     };
     masterData.push(data);
-    let masterData2 = JSON.stringify({ masterData }, null, " ");
+    let masterData2: string = JSON.stringify({ masterData }, null, " ");
     fs.writeFileSync("./block.json", masterData2);
   }
 });
@@ -642,3 +482,70 @@ events.blockPlace.on((ev) => {
 events.playerJoin.on((ev) => {
   ev.player.runCommand("tag @s remove inspect");
 });
+
+const Inspect = function (actor) {
+  if (actor?.hasTag("inspect")) {
+    cmd = `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- Inspect now disabled"}]}`;
+    actor?.removeTag("inspect");
+    actor?.runCommand(cmd);
+  } else {
+    cmd = `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- Inspect now enabled"}]}`;
+    actor?.addTag("inspect");
+    actor?.runCommand(cmd);
+  }
+};
+
+const readJson = function () {
+  return JSON.parse(fs.readFileSync("./block.json", "utf8"));
+};
+const Nodata = function (name) {
+  return (
+    `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- No block data found at ` +
+    name +
+    `"}]}`
+  );
+};
+const Cmd = function (pg, now, name, rba, block, x, y, z) {
+  return (
+    `tellraw @s {"rawtext":[{"text":"` +
+    pg +
+    `§7` +
+    now +
+    ` §l§f - §3` +
+    name +
+    ` §f` +
+    rba +
+    ` §3` +
+    block +
+    ` §r§7(location: ` +
+    x +
+    `/` +
+    y +
+    `/` +
+    z +
+    ` )"}]}`
+  );
+};
+
+const TimeNow = function () {
+  let TYear: string = date.getFullYear().toString();
+  var TMonth2: number = date.getMonth() + 1;
+  var TMonth: string = TMonth2.toString();
+  let TDate: string = date.getDate().toString();
+  let THour: string = date.getHours().toString();
+  let TMinutes: string = date.getMinutes().toString();
+  let TSeconds: string = date.getSeconds().toString();
+  var Now: string =
+    TYear +
+    "/" +
+    TMonth +
+    "/" +
+    TDate +
+    "/" +
+    THour +
+    "/" +
+    TMinutes +
+    "/" +
+    TSeconds;
+  return Now;
+};
