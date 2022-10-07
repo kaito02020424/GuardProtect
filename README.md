@@ -5,7 +5,7 @@ Minecraft World Guard BDSX Plugin
 Add code to index.ts in the same hierarchical folder to read
 
 ```import './ProtectGuard';```
-### Command List
+## Command List  
 
 /pg help - Display more info for that command.
 
