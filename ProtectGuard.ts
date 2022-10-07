@@ -1,150 +1,529 @@
 import { events } from "bdsx/event";
 import { command } from "bdsx/command";
-import { CANCEL } from 'bdsx/common';
-import * as fs from 'fs';
-import { CxxString } from "bdsx/nativetype";
-import { ItemStack } from 'bdsx/bds/inventory';
+import { CANCEL } from "bdsx/common";
+import * as fs from "fs";
+import { CxxString, int32_t } from "bdsx/nativetype";
+import { ItemStack } from "bdsx/bds/inventory";
+import { readBuilderProgram } from "typescript";
+import path, { dirname } from "path";
 
-var list: string[] = [] 
-var a=true
-const p = "ProtectGuard/block.txt";
- 
-if( fs.existsSync( p ) ){} else {
-fs.mkdir('ProtectGuard', () => {
-    fs.writeFile('ProtectGuard/block.txt', '', function () {
-        console.log('Create ProtectGuard/block.txt');
-    });
-});
-}
-command.register('pg', 'protect world')
-.overload((param, origin, output) => {
-    const actor = origin.getEntity() 
-    if(actor?.hasTag("inspect")){
-        let cmd = `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- Inspect now disabled"}]}`
-        actor?.runCommand("tag @s remove inspect")
-        actor?.runCommand(cmd)
-    } else {
-        let cmd = `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- Inspect now enabled"}]}`
-        actor?.runCommand("tag @s add inspect")
-        actor?.runCommand(cmd)
+var a = true;
+var masterData: {
+  Name: string;
+  rb: string;
+  block: string;
+  x: int32_t;
+  y: int32_t;
+  z: int32_t;
+  date: string;
+}[] = [];
+const date = new Date();
+let jsonObject;
+let x;
+let y;
+let z;
+
+command
+  .register("pg", "protect world")
+  .overload(
+    (param, origin, output) => {
+      const actor = origin.getEntity();
+      if (actor?.hasTag("inspect")) {
+        let cmd = `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- Inspect now disabled"}]}`;
+        actor?.runCommand("tag @s remove inspect");
+        actor?.runCommand(cmd);
+      } else {
+        let cmd = `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- Inspect now enabled"}]}`;
+        actor?.runCommand("tag @s add inspect");
+        actor?.runCommand(cmd);
+      }
+    },
+    {
+      option: command.enum("ProtectGuard.inspect", "i"),
     }
-}, {
-    option: command.enum("ProtectGuard.inspect", "i"),
-})
-.overload((param, origin, output) => {
-    const actor = origin.getEntity()
-    if(actor?.hasTag("inspect")){
-        let cmd = `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- Inspect now disabled"}]}`
-        actor?.runCommand("tag @s remove inspect")
-        actor?.runCommand(cmd)
-    } else {
-        let cmd = `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- Inspect now enabled"}]}`
-        actor?.runCommand("tag @s add inspect")
-        actor?.runCommand(cmd)
+  )
+  .overload(
+    (param, origin, output) => {
+      const actor = origin.getEntity();
+      if (actor?.hasTag("inspect")) {
+        let cmd = `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- Inspect now disabled"}]}`;
+        actor?.runCommand("tag @s remove inspect");
+        actor?.runCommand(cmd);
+      } else {
+        let cmd = `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- Inspect now enabled"}]}`;
+        actor?.runCommand("tag @s add inspect");
+        actor?.runCommand(cmd);
+      }
+    },
+    {
+      option: command.enum("ProtectGuard.inspect2", "inspect"),
     }
-} ,{
-    option: command.enum("ProtectGuard.inspect2", "inspect"),
-})
-.overload((param, origin, output) => {
-    const actor = origin.getEntity()
-    let cmd = `tellraw @s {"rawtext":[{"text":"§l§f----§3ProtectGuard§f----\n§3Version: §fProtectGuard v1.0\n§3Data: §f/bedrock_server/ProtectGuard\n§3Download §fhttps://github.com/RuneNight/GuardProtect\n§3Lisense §fMIT"}]}`
-    actor?.runCommand(cmd)
-} ,{
-    option: command.enum("ProtectGuard.status", "status"),
-})
-.overload((param, origin, output) => {
-    var block = fs.readFileSync("ProtectGuard/block.txt").toString().split("\n")
-    for (var i = 0; i < block.length; i++) {
-        if(block[i].includes(param.user)){
-            const actor = origin.getEntity()
-            if(block[i].includes("removed")){
-                actor?.runCommand("setblock "+block[i].split(" ")[4]+" "+block[i].split(" ")[5]+" "+block[i].split(" ")[6]+" "+block[i].split(" ")[2])
-            } else {
-                actor?.runCommand("setblock "+block[i].split(" ")[4]+" "+block[i].split(" ")[5]+" "+block[i].split(" ")[6]+" air")
-            }
-        }
+  )
+  .overload(
+    (param, origin, output) => {
+      const actor = origin.getEntity();
+      let cmd = `tellraw @s {"rawtext":[{"text":"§l§f----§3ProtectGuard§f----\n§3Version: §fProtectGuard v1.0\n§3Data: §f/bedrock_server/ProtectGuard\n§3Download §fhttps://github.com/RuneNight/GuardProtect\n§3Lisense §fMIT"}]}`;
+      actor?.runCommand(cmd);
+    },
+    {
+      option: command.enum("ProtectGuard.status", "status"),
     }
-} ,{
+  )
+  .overload((param, origin, output) => {}, {
     option: command.enum("ProtectGuard.rollback", "rollback"),
-    user: CxxString
-})
-.overload((param, origin) => {
-    var block = fs.readFileSync("ProtectGuard/block.txt").toString().split("\n")
-    var pg = `§l§f----§3ProtectGuard§f----§r\n`
-    for (var i = 0; i < block.length; i++) {
-        if(block[i].includes(param.name)){
-            const actor = origin.getEntity()
-            let cmd = `tellraw @s {"rawtext":[{"text":"`+pg+`§70.00/h ago §l§f - `+block[i].split("(((")[0]+"§r§7(x"+block[i].split(" ")[4]+"/y"+block[i].split(" ")[5]+"/z"+block[i].split(" ")[6]+`)"}]}`
-            pg =""
-            actor?.runCommand(cmd)
+  })
+  .overload(
+    (param, origin) => {
+      const actor = origin.getEntity();
+      var pg = `§l§f----§3ProtectGuard§f----§r\n`;
+      a = true;
+      let rba = "";
+      try {
+        jsonObject = JSON.parse(fs.readFileSync("./block.json", "utf8"));
+      } catch (e) {
+        console.log(e);
+      }
+      try {
+        const jsi: object =
+          jsonObject.masterData.filter((item: any) => {
+            if (item.Name == param.text) return true;
+          }) || {};
+        for (const i in jsi) {
+          if (jsi[i].rb == "b") {
+            rba = "placed";
+          } else {
+            rba = "removed";
+          }
+          let cmd =
+            `tellraw @s {"rawtext":[{"text":"` +
+            pg +
+            `§70.00/h ago §l§f - §3` +
+            jsi[i].Name +
+            ` §f` +
+            rba +
+            ` §3` +
+            jsi[i].block +
+            ` §r§7(location: ` +
+            jsi[i].x +
+            `,` +
+            jsi[i].y +
+            `,` +
+            jsi[i].z +
+            ` )"}]}`;
+          pg = "";
+          actor?.runCommand(cmd);
+          a = false;
         }
+      } catch (e) {
+        console.log(e);
+      }
+      if (a) {
+        let cmd =
+          `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- No block data found at ` +
+          param.text +
+          `"}]}`;
+        actor?.runCommand(cmd);
+      }
+    },
+    {
+      option: command.enum("ProtectGuard.lookup", "lookup"),
+      user: command.enum("ProtectGuard.lookup.user", "user"),
+      text: CxxString,
     }
-} ,{
-    option: command.enum("ProtectGuard.lookup", "lookup"),
-    name: CxxString
-})
-.overload((param, origin) => {
-            const actor = origin.getEntity()
-            let cmd = `tellraw @s {"rawtext":[{"text":"§l§f---- §3ProtectGuard Help §f----\n§3/pg §7help §f- Display more info for that command.\n§3/pg §7inspect §f - Turns the block inspector on or off.\n§3/pg §7rollback §3<params> §f- Rollback block data.\n§3/pg §7lookup §3<params> §f- Advanced block data lookup.\n§3/pg §7status §f- Displays the plugin status."}]}`
-            actor?.runCommand(cmd)
-} ,{
-    option: command.enum("ProtectGuard.help", "help"),
+  )
+  .overload(
+    (param, origin) => {
+      const actor = origin.getEntity();
+      var pg = `§l§f----§3ProtectGuard§f----§r\n`;
+      a = true;
+      let rba = "";
+      try {
+        jsonObject = JSON.parse(fs.readFileSync("./block.json", "utf8"));
+      } catch (e) {
+        console.log(e);
+      }
+      try {
+        const jsi: object =
+          jsonObject.masterData.filter((item: any) => {
+            if (item.block == param.blockname) return true;
+          }) || {};
+        for (const i in jsi) {
+          if (jsi[i].rb == "b") {
+            rba = "placed";
+          } else {
+            rba = "removed";
+          }
+          let cmd =
+            `tellraw @s {"rawtext":[{"text":"` +
+            pg +
+            `§70.00/h ago §l§f - §3` +
+            jsi[i].Name +
+            ` §f` +
+            rba +
+            ` §3` +
+            jsi[i].block +
+            ` §r§7(location: ` +
+            jsi[i].x +
+            `,` +
+            jsi[i].y +
+            `,` +
+            jsi[i].z +
+            ` )"}]}`;
+          pg = "";
+          actor?.runCommand(cmd);
+          a = false;
+        }
+      } catch (e) {
+        console.log(e);
+      }
+      if (a) {
+        let cmd =
+          `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- No block data found at ` +
+          param.text +
+          `"}]}`;
+        actor?.runCommand(cmd);
+      }
+    },
+    {
+      option: command.enum("ProtectGuard.lookup", "lookup"),
+      blockname: command.enum("ProtectGuard.lookup.blockName", "blockname"),
+      text: CxxString,
+    }
+  )
+  .overload(
+    (param, origin) => {
+      const actor = origin.getEntity();
+      var pg = `§l§f----§3ProtectGuard§f----§r\n`;
+      a = true;
+      let rba = "";
+      try {
+        jsonObject = JSON.parse(fs.readFileSync("./block.json", "utf8"));
+      } catch (e) {
+        console.log(e);
+      }
+      try {
+        const jsi: object =
+          jsonObject.masterData.filter((item: any) => {
+            if (item.x == param.x && item.y == param.y && item.z == param.z)
+              return true;
+          }) || {};
+        for (const i in jsi) {
+          if (jsi[i].rb == "b") {
+            rba = "placed";
+          } else {
+            rba = "removed";
+          }
+          let cmd =
+            `tellraw @s {"rawtext":[{"text":"` +
+            pg +
+            `§70.00/h ago §l§f - §3` +
+            jsi[i].Name +
+            ` §f` +
+            rba +
+            ` §3` +
+            jsi[i].block +
+            ` §r§7(location: ` +
+            jsi[i].x +
+            `,` +
+            jsi[i].y +
+            `,` +
+            jsi[i].z +
+            ` )"}]}`;
+          pg = "";
+          actor?.runCommand(cmd);
+          a = false;
+        }
+      } catch (e) {
+        console.log(e);
+      }
+      if (a) {
+        let cmd =
+          `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- No block data found at ` +
+          param.x +
+          `/` +
+          param.y +
+          `/` +
+          param.z +
+          `"}]}`;
+        actor?.runCommand(cmd);
+      }
+    },
+    {
+      option: command.enum("ProtectGuard.lookup", "lookup"),
+      user: command.enum("ProtectGuard.lookup.xyz", "xyz"),
+      x: int32_t,
+      y: int32_t,
+      z: int32_t,
+    }
+  )
+  .overload(
+    (param, origin) => {
+      const actor = origin.getEntity();
+      var pg = `§l§f----§3ProtectGuard§f----§r\n`;
+      a = true;
+      let rba = "";
+      try {
+        jsonObject = JSON.parse(fs.readFileSync("./block.json", "utf8"));
+      } catch (e) {
+        console.log(e);
+      }
+      try {
+        let x = actor?.getPosition().x;
+        let x2 = actor?.getPosition().x;
+        let y = actor?.getPosition().y;
+        let z = actor?.getPosition().z;
+
+        const jsi: object =
+          jsonObject.masterData.filter((item: any) => {
+            return true;
+          }) || {};
+        for (const i in jsi) {
+          if (jsi[i].rb == "b") {
+            rba = "placed";
+          } else {
+            rba = "removed";
+          }
+          let cmd =
+            `tellraw @s {"rawtext":[{"text":"` +
+            pg +
+            `§70.00/h ago §l§f - §3` +
+            jsi[i].Name +
+            ` §f` +
+            rba +
+            ` §3` +
+            jsi[i].block +
+            ` §r§7(location: ` +
+            jsi[i].x +
+            `,` +
+            jsi[i].y +
+            `,` +
+            jsi[i].z +
+            ` )"}]}`;
+          pg = "";
+          actor?.runCommand(cmd);
+          a = false;
+        }
+      } catch (e) {
+        console.log(e);
+      }
+      if (a) {
+        let cmd =
+          `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- No block data found at ` +
+          x +
+          `/` +
+          y +
+          `/` +
+          z +
+          `"}]}`;
+        actor?.runCommand(cmd);
+      }
+    },
+    {
+      option: command.enum("ProtectGuard.near", "near"),
+      r: int32_t,
+    }
+  )
+  .overload(
+    (param, origin) => {
+      const actor = origin.getEntity();
+      let cmd = `tellraw @s {"rawtext":[{"text":"§l§f---- §3ProtectGuard Help §f----\n§3/pg §7help §f- Display more info for that command.\n§3/pg §7inspect §f - Turns the block inspector on or off.\n§3/pg §7rollback §3<params> §f- Rollback block data.\n§3/pg §7lookup §3<params> §f- Advanced block data lookup.\n§3/pg §7status §f- Displays the plugin status."}]}`;
+      actor?.runCommand(cmd);
+    },
+    {
+      option: command.enum("ProtectGuard.help", "help"),
+    }
+  )
+  .overload(
+    (param, origin) => {
+      const actor = origin.getEntity();
+      let cmd = `tellraw @s {"rawtext":[{"text":""}]}`;
+    },
+    {
+      option: command.enum("ProtectGuard.near", "near"),
+    }
+  );
+
+events.blockDestroy.on((ev) => {
+  if (ev.player.hasTag("inspect")) {
+    a = true;
+    var pg =
+      `§l§f----§3ProtectGuard§f---- §r§7(x` +
+      ev.blockPos.x +
+      `/y` +
+      ev.blockPos.y +
+      `/z` +
+      ev.blockPos.z +
+      `)\n`;
+    let rba = "";
+    try {
+      jsonObject = JSON.parse(fs.readFileSync("./block.json", "utf8"));
+    } catch (e) {
+      console.log(e);
+    }
+    try {
+      const jsi: object =
+        jsonObject.masterData.filter((item: any) => {
+          if (
+            item.x == ev.blockPos.x &&
+            item.y == ev.blockPos.y &&
+            item.z == ev.blockPos.z
+          )
+            return true;
+        }) || {};
+      for (const i in jsi) {
+        if (jsi[i].rb == "b") {
+          rba = "placed";
+        } else {
+          rba = "removed";
+        }
+        let cmd =
+          `tellraw @s {"rawtext":[{"text":"` +
+          pg +
+          `§70.00/h ago §l§f - §3` +
+          jsi[i].Name +
+          ` §f` +
+          rba +
+          ` §3` +
+          jsi[i].block +
+          ` §r§7(location: ` +
+          jsi[i].x +
+          `,` +
+          jsi[i].y +
+          `,` +
+          jsi[i].z +
+          ` )"}]}`;
+        pg = "";
+        ev.player.runCommand(cmd);
+        a = false;
+      }
+    } catch (e) {
+      console.log(e);
+    }
+    if (a) {
+      var blocks = ev.blockSource
+        .getBlock(ev.blockPos)
+        .getName()
+        .replace("minecraft:", "");
+      let cmd =
+        `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- No block data found at ` +
+        blocks +
+        `"}]}`;
+      ev.player.runCommand(cmd);
+    }
+    return CANCEL;
+  } else {
+    let TYear = date.getFullYear();
+    let TMonth = date.getMonth() + 1;
+    let TDate = date.getDate();
+    let THour = date.getHours();
+    let TMinutes = date.getMinutes();
+    let TSeconds = date.getSeconds();
+    var Now = TYear + TMonth + TDate + THour + TMinutes + TSeconds;
+    var data = {
+      Name: ev.player.getName(),
+      rb: "r",
+      block: ev.blockSource
+        .getBlock(ev.blockPos)
+        .getName()
+        .replace("minecraft:", ""),
+      x: ev.blockPos.x,
+      y: ev.blockPos.y,
+      z: ev.blockPos.z,
+      date: Now.toString(),
+    };
+    masterData.push(data);
+    let masterData2 = JSON.stringify({ masterData }, null, " ");
+    fs.writeFileSync("./block.json", masterData2);
+  }
+});
+events.blockPlace.on((ev) => {
+  if (ev.player.hasTag("inspect")) {
+    a = true;
+    var pg =
+      `§l§f----§3ProtectGuard§f---- §r§7(x` +
+      ev.blockPos.x +
+      `/y` +
+      ev.blockPos.y +
+      `/z` +
+      ev.blockPos.z +
+      `)\n`;
+    let rba = "";
+    try {
+      jsonObject = JSON.parse(fs.readFileSync("./block.json", "utf8"));
+    } catch (e) {
+      console.log(e);
+    }
+    try {
+      const jsi: object =
+        jsonObject.masterData.filter((item: any) => {
+          if (
+            item.x == ev.blockPos.x &&
+            item.y == ev.blockPos.y &&
+            item.z == ev.blockPos.z
+          )
+            return true;
+        }) || {};
+      for (const i in jsi) {
+        if (jsi[i].rb == "b") {
+          rba = "placed";
+        } else {
+          rba = "removed";
+        }
+        let cmd =
+          `tellraw @s {"rawtext":[{"text":"` +
+          pg +
+          `§70.00/h ago §l§f - §3` +
+          jsi[i].Name +
+          ` §f` +
+          rba +
+          ` §3` +
+          jsi[i].block +
+          ` §r§7(location: ` +
+          jsi[i].x +
+          `,` +
+          jsi[i].y +
+          `,` +
+          jsi[i].z +
+          ` )"}]}`;
+        pg = "";
+        ev.player.runCommand(cmd);
+        a = false;
+      }
+    } catch (e) {
+      console.log(e);
+    }
+    if (a) {
+      var blocks = ev.block.getName().replace("minecraft:", "");
+      let cmd =
+        `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- No block data found at ` +
+        blocks +
+        `"}]}`;
+      ev.player.runCommand(cmd);
+    }
+    return CANCEL;
+  } else {
+    let TYear = date.getFullYear();
+    let TMonth = date.getMonth() + 1;
+    let TDate = date.getDate();
+    let THour = date.getHours();
+    let TMinutes = date.getMinutes();
+    let TSeconds = date.getSeconds();
+    var Now = TYear + TMonth + TDate + THour + TMinutes + TSeconds;
+    var data = {
+      Name: ev.player.getName(),
+      rb: "b",
+      block: ev.block.getName().replace("minecraft:", ""),
+      x: ev.blockPos.x,
+      y: ev.blockPos.y,
+      z: ev.blockPos.z,
+      date: Now.toString(),
+    };
+    masterData.push(data);
+    let masterData2 = JSON.stringify({ masterData }, null, " ");
+    fs.writeFileSync("./block.json", masterData2);
+  }
 });
 
-
-events.blockDestroy.on((ev)=>{
-    if(ev.player.hasTag("inspect")){
-        a=true
-        var cancel = "(location: "+ev.blockPos.x+" "+ev.blockPos.y+" "+ev.blockPos.z+" )"
-        var pg = `§l§f----§3ProtectGuard§f---- §r§7(x`+ev.blockPos.x+`/y`+ev.blockPos.y+`/z`+ev.blockPos.z+`)\n`
-        var block = fs.readFileSync("ProtectGuard/block.txt").toString().split("\n")
-        for (var i = 0; i < block.length; i++) {
-            if(block[i].includes(cancel)){
-                let cmd = `tellraw @s {"rawtext":[{"text":"`+pg+`§70.00/h ago §l§f - `+block[i].split("(((")[0]+`"}]}`
-                pg =""
-                ev.player.runCommand(cmd)
-                a=false
-            }
-        }
-        if(a){
-            var blocks = ev.blockSource.getBlock(ev.blockPos).getName().replace("minecraft:","")
-            let cmd = `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- No block data found at `+blocks+`"}]}`
-                ev.player.runCommand(cmd)
-        }
-        return CANCEL
-    } else {
-        var blocks = ev.blockSource.getBlock(ev.blockPos).getName().replace("minecraft:","")
-        list.push("§l§3"+ev.player.getName()+" §fremoved§3 "+blocks+" (((location: "+ev.blockPos.x+" "+ev.blockPos.y+" "+ev.blockPos.z+" )))")
-        fs.appendFile('ProtectGuard/block.txt', list[list.length-1]+"\n", () => {});
-    }
-})
-events.blockPlace.on((ev)=>{
-        if(ev.player.hasTag("inspect")){
-            a=true
-            var cancel = "(location: "+ev.blockPos.x+" "+ev.blockPos.y+" "+ev.blockPos.z+" )"
-            var pg = `§l§f----§3ProtectGuard§f---- §r§7(x`+ev.blockPos.x+`/y`+ev.blockPos.y+`/z`+ev.blockPos.z+`)\n`
-            var block = fs.readFileSync("ProtectGuard/block.txt").toString().split("\n")
-            for (var i = 0; i < block.length; i++) {
-                if(block[i].toString().includes(cancel)){
-                    let cmd = `tellraw @s {"rawtext":[{"text":"`+pg+`§70.00/h ago §l§f - `+block[i].split("(((")[0]+`"}]}`
-                    pg =""
-                    ev.player.runCommand(cmd)
-                    a=false
-                }
-            }
-            if(a){
-                var blocks = ev.block.getName().replace("minecraft:","")
-                let cmd = `tellraw @s {"rawtext":[{"text":"§l§3ProtectGuard §f- No block data found at `+blocks+`"}]}`
-                    ev.player.runCommand(cmd)
-            }
-            return CANCEL
-    } else {
-        var blocks = ev.block.getName().replace("minecraft:","")
-        list.push("§l§3"+ev.player.getName()+" §fplaced§3 "+blocks+" (((location: "+ev.blockPos.x+" "+ev.blockPos.y+" "+ev.blockPos.z+" )))")
-        fs.appendFile('ProtectGuard/block.txt', list[list.length-1]+"\n", () => {});
-    }
-})
-
-events.playerJoin.on((ev)=>{
-    ev.player.runCommand("tag @s remove inspect")
-})
+events.playerJoin.on((ev) => {
+  ev.player.runCommand("tag @s remove inspect");
+});
