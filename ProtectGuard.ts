@@ -5,6 +5,7 @@ import * as fs from "fs";
 import { CxxString, int32_t } from "bdsx/nativetype";
 import { bedrockServer } from "bdsx/launcher";
 import { CommandPermissionLevel } from "bdsx/bds/command";
+import { timeout } from "bdsx/util";
 
 var a = true;
 var masterData: {
@@ -410,11 +411,9 @@ const RegisterCmd = function () {
       }
     );
 };
-events.serverOpen.on(() => {
-  RegisterCmd();
-  command.find("pg").signature.permissionLevel =
-    CommandPermissionLevel.Operator;
-});
+
+RegisterCmd();
+command.find("pg").signature.permissionLevel = CommandPermissionLevel.Operator;
 events.blockDestroy.on((ev) => {
   if (ev.player.hasTag("inspect")) {
     a = true;
