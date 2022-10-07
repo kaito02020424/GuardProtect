@@ -409,10 +409,12 @@ const RegisterCmd = function () {
         option: command.enum("ProtectGuard.help", "help"),
       }
     );
+};
+events.serverOpen.on(() => {
+  RegisterCmd();
   command.find("pg").signature.permissionLevel =
     CommandPermissionLevel.Operator;
-};
-events.serverOpen.on(() => RegisterCmd());
+});
 events.blockDestroy.on((ev) => {
   if (ev.player.hasTag("inspect")) {
     a = true;
