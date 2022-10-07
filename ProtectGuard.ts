@@ -152,7 +152,7 @@ const RegisterCmd = function () {
               }
               cmd = Cmd(
                 pg,
-                jsi[i].Now,
+                jsi[i].date,
                 jsi[i].Name,
                 rba,
                 jsi[i].block,
@@ -208,7 +208,7 @@ const RegisterCmd = function () {
             }
             cmd = Cmd(
               pg,
-              jsi[i].Now,
+              jsi[i].date,
               jsi[i].Name,
               rba,
               jsi[i].block,
@@ -325,7 +325,7 @@ const RegisterCmd = function () {
               }
               cmd = Cmd(
                 pg,
-                jsi[i].Now,
+                jsi[i].date,
                 jsi[i].Name,
                 rba,
                 jsi[i].block,
