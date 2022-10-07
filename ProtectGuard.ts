@@ -3,6 +3,8 @@ import { command } from "bdsx/command";
 import { CANCEL } from "bdsx/common";
 import * as fs from "fs";
 import { CxxString, int32_t } from "bdsx/nativetype";
+import { bedrockServer } from "bdsx/launcher";
+import { CommandPermissionLevel } from "bdsx/bds/command";
 
 var a = true;
 var masterData: {
@@ -22,320 +24,395 @@ let z: number;
 let cmd: string;
 let jsi: object;
 
-command
-  .register("pg", "protect world")
-  .overload(
-    (param, origin, output) => {
-      const actor = origin.getEntity();
-      Inspect(actor);
-    },
-    {
-      option: command.enum("ProtectGuard.i", "i"),
-    }
-  )
-  .overload(
-    (param, origin, output) => {
-      const actor = origin.getEntity();
-      Inspect(actor);
-    },
-    {
-      option: command.enum("ProtectGuard.inspect", "inspect"),
-    }
-  )
-  .overload(
-    (param, origin, output) => {
-      const actor = origin.getEntity();
-      cmd = `tellraw @s {"rawtext":[{"text":"§l§f----§3ProtectGuard§f----\n§3Version: §fProtectGuard v1.0\n§3Data: §f/bedrock_server/ProtectGuard\n§3Download §fhttps://github.com/RuneNight/GuardProtect\n§3Lisense §fMIT"}]}`;
-      actor?.runCommand(cmd);
-    },
-    {
-      option: command.enum("ProtectGuard.status", "status"),
-    }
-  )
-  .overload(
-    (param, origin, output) => {
-      const actor = origin.getEntity();
-      var pg = `§l§f----§3ProtectGuard Restore§f----§r\n`;
-      try {
-        jsi =
-          jsonObject.masterData.filter((item: any) => {
-            if (item.Name == param.user && item.block == param.block)
-              return true;
-          }) || {};
+const RegisterCmd = function () {
+  command
+    .register("pg", "protect world")
+    .overload(
+      (param, origin, output) => {
+        const actor = origin.getEntity();
+        Inspect(actor);
+      },
+      {
+        option: command.enum("ProtectGuard.i", "i"),
+      }
+    )
+    .overload(
+      (param, origin, output) => {
+        const actor = origin.getEntity();
+        Inspect(actor);
+      },
+      {
+        option: command.enum("ProtectGuard.inspect", "inspect"),
+      }
+    )
+    .overload(
+      (param, origin, output) => {
+        const actor = origin.getEntity();
+        cmd = `tellraw @s {"rawtext":[{"text":"§l§f----§3ProtectGuard§f----\n§3Version: §fProtectGuard v1.0\n§3Data: §f/bedrock_server/ProtectGuard\n§3Download §fhttps://github.com/RuneNight/GuardProtect\n§3Lisense §fMIT"}]}`;
+        actor?.runCommand(cmd);
+      },
+      {
+        option: command.enum("ProtectGuard.status", "status"),
+      }
+    )
+    .overload(
+      (param, origin, output) => {
+        const actor = origin.getEntity();
+        if (param.action == "+" || param.action == "-" || param.action == "*") {
+          var pg = `§l§f----§3ProtectGuard Restore§f----§r\n`;
+          try {
+            if (param.action == "+") {
+              jsi;
+              jsonObject.masterData.filter((item: any) => {
+                if (
+                  item.Name == param.user &&
+                  item.block == param.block &&
+                  item.rb == "b"
+                )
+                  return true;
+              }) || {};
+            } else if (param.action == "-") {
+              jsi;
+              jsonObject.masterData.filter((item: any) => {
+                if (
+                  item.Name == param.user &&
+                  item.block == param.block &&
+                  item.rb == "r"
+                )
+                  return true;
+              }) || {};
+            } else if (param.action == "*") {
+              jsi;
+              jsonObject.masterData.filter((item: any) => {
+                if (item.Name == param.user && item.block == param.block)
+                  return true;
+              }) || {};
+            }
+            let rba = "";
+            for (const i in jsi) {
+              if (jsi[i].rb == "b") {
+                rba = "placed";
+                actor?.runCommand(
+                  "setblock " +
+                    jsi[i].x +
+                    " " +
+                    jsi[i].y +
+                    " " +
+                    jsi[i].z +
+                    " " +
+                    jsi[i].block
+                );
+              } else {
+                rba = "removed";
+                actor?.runCommand(
+                  "setblock " +
+                    jsi[i].x +
+                    " " +
+                    jsi[i].y +
+                    " " +
+                    jsi[i].z +
+                    " air"
+                );
+              }
+              cmd = Cmd(
+                pg,
+                jsi[i].Now,
+                jsi[i].Name,
+                rba,
+                jsi[i].block,
+                jsi[i].x,
+                jsi[i].y,
+                jsi[i].z
+              );
+              pg = "";
+              actor?.runCommand(cmd);
+              a = false;
+            }
+          } catch (e) {
+            console.log(e);
+          }
+          if (a) {
+            cmd = Nodata(param.user);
+            actor?.runCommand(cmd);
+          }
+        } else {
+          actor?.runCommand(
+            `tellraw @s {"rawtext":[{"text":"§cNoActionParam..."}]}`
+          );
+        }
+      },
+      {
+        option: command.enum("ProtectGuard.restore", "restore"),
+        user: CxxString,
+        block: CxxString,
+        action: CxxString,
+      }
+    )
+    .overload(
+      (param, origin) => {
+        const actor = origin.getEntity();
+        var pg = `§l§f----§3ProtectGuard§f----§r\n`;
+        a = true;
         let rba = "";
-        for (const i in jsi) {
-          if (jsi[i].rb == "b") {
-            rba = "placed";
-            actor?.runCommand(
-              "setblock " +
-                jsi[i].x +
-                " " +
-                jsi[i].y +
-                " " +
-                jsi[i].z +
-                " " +
-                jsi[i].block
-            );
-          } else {
-            rba = "removed";
-            actor?.runCommand(
-              "setblock " + jsi[i].x + " " + jsi[i].y + " " + jsi[i].z + " air"
-            );
-          }
-          cmd = Cmd(
-            pg,
-            jsi[i].Now,
-            jsi[i].Name,
-            rba,
-            jsi[i].block,
-            jsi[i].x,
-            jsi[i].y,
-            jsi[i].z
-          );
-          pg = "";
-          actor?.runCommand(cmd);
-          a = false;
+        try {
+          jsonObject = readJson();
+        } catch (e) {
+          console.log(e);
         }
-      } catch (e) {
-        console.log(e);
-      }
-      if (a) {
-        cmd = Nodata(param.user);
-        actor?.runCommand(cmd);
-      }
-    },
-    {
-      option: command.enum("ProtectGuard.restore", "restore"),
-      user: CxxString,
-      block: CxxString,
-    }
-  )
-  .overload(
-    (param, origin) => {
-      const actor = origin.getEntity();
-      var pg = `§l§f----§3ProtectGuard§f----§r\n`;
-      a = true;
-      let rba = "";
-      try {
-        jsonObject = readJson();
-      } catch (e) {
-        console.log(e);
-      }
-      try {
-        jsi;
-        jsonObject.masterData.filter((item: any) => {
-          if (item.Name == param.text) return true;
-        }) || {};
-        for (const i in jsi) {
-          if (jsi[i].rb == "b") {
-            rba = "placed";
-          } else {
-            rba = "removed";
-          }
-          cmd = Cmd(
-            pg,
-            jsi[i].Now,
-            jsi[i].Name,
-            rba,
-            jsi[i].block,
-            jsi[i].x,
-            jsi[i].y,
-            jsi[i].z
-          );
-          pg = "";
-          actor?.runCommand(cmd);
-          a = false;
-        }
-      } catch (e) {
-        console.log(e);
-      }
-      if (a) {
-        cmd = Nodata(param.text);
-        actor?.runCommand(cmd);
-      }
-    },
-    {
-      option: command.enum("ProtectGuard.lookup", "lookup"),
-      user: command.enum("ProtectGuard.lookup.user", "user"),
-      text: CxxString,
-    }
-  )
-  .overload(
-    (param, origin) => {
-      const actor = origin.getEntity();
-      var pg = `§l§f----§3ProtectGuard Rollback§f----§r\n`;
-      a = true;
-      let rba = "";
-      try {
-        jsonObject = readJson();
-      } catch (e) {
-        console.log(e);
-      }
-      try {
-        jsi;
-        jsonObject.masterData.filter((item: any) => {
-          if (item.Name == param.user && item.block == param.block) return true;
-        }) || {};
-        for (const i in jsi) {
-          if (jsi[i].rb == "b") {
-            rba = "placed";
-            actor?.runCommand(
-              "setblock " + jsi[i].x + " " + jsi[i].y + " " + jsi[i].z + " air"
-            );
-          } else {
-            rba = "removed";
-            actor?.runCommand(
-              "setblock " +
-                jsi[i].x +
-                " " +
-                jsi[i].y +
-                " " +
-                jsi[i].z +
-                " " +
-                jsi[i].block
-            );
-          }
-          cmd = Cmd(
-            pg,
-            jsi[i].Now,
-            jsi[i].Name,
-            rba,
-            jsi[i].block,
-            jsi[i].x,
-            jsi[i].y,
-            jsi[i].z
-          );
-          pg = "";
-          actor?.runCommand(cmd);
-          a = false;
-        }
-      } catch (e) {
-        console.log(e);
-      }
-      if (a) {
-        cmd = Nodata(param.user);
-        actor?.runCommand(cmd);
-      }
-    },
-    {
-      option: command.enum("ProtectGuard.rollback", "rollback"),
-      user: CxxString,
-      block: CxxString,
-    }
-  )
-  .overload(
-    (param, origin) => {
-      const actor = origin.getEntity();
-      var pg = `§l§f----§3ProtectGuard§f----§r\n`;
-      a = true;
-      let rba = "";
-      try {
-        jsonObject = readJson();
-      } catch (e) {
-        console.log(e);
-      }
-      try {
-        jsi =
-          jsonObject.MasterData.filter((item: any) => {
-            if (item.x == param.x && item.y == param.y && item.z == param.z)
-              return true;
-          }) || {};
-        for (const i in jsi) {
-          if (jsi[i].rb == "b") {
-            rba = "placed";
-          } else {
-            rba = "removed";
-          }
-          cmd = Cmd(
-            pg,
-            jsi[i].Now,
-            jsi[i].Name,
-            rba,
-            jsi[i].block,
-            jsi[i].x,
-            jsi[i].y,
-            jsi[i].z
-          );
-          pg = "";
-          actor?.runCommand(cmd);
-          a = false;
-        }
-      } catch (e) {}
-      if (a) {
-        let xyz = param.x + `/` + param.y + `/` + param.z;
-        cmd = Nodata(xyz);
-        actor?.runCommand(cmd);
-      }
-    },
-    {
-      option: command.enum("ProtectGuard.lookup", "lookup"),
-      user: command.enum("ProtectGuard.lookup.xyz", "xyz"),
-      x: int32_t,
-      y: int32_t,
-      z: int32_t,
-    }
-  )
-  .overload(
-    (param, origin) => {
-      const actor = origin.getEntity();
-      var pg = `§l§f----§3ProtectGuard§f----§r\n`;
-      a = true;
-      let rba = "";
-      try {
-        jsonObject = readJson();
-      } catch (e) {
-        console.log(e);
-      }
-      try {
-        jsi =
+        try {
+          jsi;
           jsonObject.masterData.filter((item: any) => {
-            return true;
+            if (item.Name == param.text) return true;
           }) || {};
-        for (const i in jsi) {
-          if (jsi[i].rb == "b") {
-            rba = "placed";
-          } else {
-            rba = "removed";
+          for (const i in jsi) {
+            if (jsi[i].rb == "b") {
+              rba = "placed";
+            } else {
+              rba = "removed";
+            }
+            cmd = Cmd(
+              pg,
+              jsi[i].Now,
+              jsi[i].Name,
+              rba,
+              jsi[i].block,
+              jsi[i].x,
+              jsi[i].y,
+              jsi[i].z
+            );
+            pg = "";
+            actor?.runCommand(cmd);
+            a = false;
           }
-          cmd = Cmd(
-            pg,
-            jsi[i].Now,
-            jsi[i].Name,
-            rba,
-            jsi[i].block,
-            jsi[i].x,
-            jsi[i].y,
-            jsi[i].z
-          );
-          pg = "";
-          actor?.runCommand(cmd);
-          a = false;
+        } catch (e) {
+          console.log(e);
         }
-      } catch (e) {
-        console.log(e);
+        if (a) {
+          cmd = Nodata(param.text);
+          actor?.runCommand(cmd);
+        }
+      },
+      {
+        option: command.enum("ProtectGuard.lookup", "lookup"),
+        user: command.enum("ProtectGuard.lookup.user", "user"),
+        text: CxxString,
       }
-      if (a) {
-        let xyz = x + "/" + y + "/" + z;
-        cmd = Nodata(xyz);
+    )
+    .overload(
+      (param, origin) => {
+        const actor = origin.getEntity();
+        if (param.action == "+" || param.action == "-" || param.action == "*") {
+          var pg = `§l§f----§3ProtectGuard Rollback§f----§r\n`;
+          a = true;
+          let rba = "";
+          try {
+            jsonObject = readJson();
+          } catch (e) {
+            console.log(e);
+          }
+          try {
+            if (param.action == "+") {
+              jsi;
+              jsonObject.masterData.filter((item: any) => {
+                if (
+                  item.Name == param.user &&
+                  item.block == param.block &&
+                  item.rb == "b"
+                )
+                  return true;
+              }) || {};
+            } else if (param.action == "-") {
+              jsi;
+              jsonObject.masterData.filter((item: any) => {
+                if (
+                  item.Name == param.user &&
+                  item.block == param.block &&
+                  item.rb == "r"
+                )
+                  return true;
+              }) || {};
+            } else if (param.action == "*") {
+              jsi;
+              jsonObject.masterData.filter((item: any) => {
+                if (item.Name == param.user && item.block == param.block)
+                  return true;
+              }) || {};
+            }
+            for (const i in jsi) {
+              if (jsi[i].rb == "b") {
+                rba = "placed";
+                actor?.runCommand(
+                  "setblock " +
+                    jsi[i].x +
+                    " " +
+                    jsi[i].y +
+                    " " +
+                    jsi[i].z +
+                    " air"
+                );
+              } else {
+                rba = "removed";
+                actor?.runCommand(
+                  "setblock " +
+                    jsi[i].x +
+                    " " +
+                    jsi[i].y +
+                    " " +
+                    jsi[i].z +
+                    " " +
+                    jsi[i].block
+                );
+              }
+              cmd = Cmd(
+                pg,
+                jsi[i].Now,
+                jsi[i].Name,
+                rba,
+                jsi[i].block,
+                jsi[i].x,
+                jsi[i].y,
+                jsi[i].z
+              );
+              pg = "";
+              actor?.runCommand(cmd);
+              a = false;
+            }
+          } catch (e) {
+            console.log(e);
+          }
+          if (a) {
+            cmd = Nodata(param.user);
+            actor?.runCommand(cmd);
+          }
+        } else {
+          actor?.runCommand(
+            `tellraw @s {"rawtext":[{"text":"§cNoActionParam..."}]}`
+          );
+        }
+      },
+      {
+        option: command.enum("ProtectGuard.rollback", "rollback"),
+        user: CxxString,
+        block: CxxString,
+        action: CxxString,
+      }
+    )
+    .overload(
+      (param, origin) => {
+        const actor = origin.getEntity();
+        var pg = `§l§f----§3ProtectGuard§f----§r\n`;
+        a = true;
+        let rba = "";
+        try {
+          jsonObject = readJson();
+        } catch (e) {
+          console.log(e);
+        }
+        try {
+          jsi =
+            jsonObject.MasterData.filter((item: any) => {
+              if (item.x == param.x && item.y == param.y && item.z == param.z)
+                return true;
+            }) || {};
+          for (const i in jsi) {
+            if (jsi[i].rb == "b") {
+              rba = "placed";
+            } else {
+              rba = "removed";
+            }
+            cmd = Cmd(
+              pg,
+              jsi[i].Now,
+              jsi[i].Name,
+              rba,
+              jsi[i].block,
+              jsi[i].x,
+              jsi[i].y,
+              jsi[i].z
+            );
+            pg = "";
+            actor?.runCommand(cmd);
+            a = false;
+          }
+        } catch (e) {}
+        if (a) {
+          let xyz = param.x + `/` + param.y + `/` + param.z;
+          cmd = Nodata(xyz);
+          actor?.runCommand(cmd);
+        }
+      },
+      {
+        option: command.enum("ProtectGuard.lookup", "lookup"),
+        user: command.enum("ProtectGuard.lookup.xyz", "xyz"),
+        x: int32_t,
+        y: int32_t,
+        z: int32_t,
+      }
+    )
+    .overload(
+      (param, origin) => {
+        const actor = origin.getEntity();
+        var pg = `§l§f----§3ProtectGuard§f----§r\n`;
+        a = true;
+        let rba = "";
+        try {
+          jsonObject = readJson();
+        } catch (e) {
+          console.log(e);
+        }
+        try {
+          jsi =
+            jsonObject.masterData.filter((item: any) => {
+              return true;
+            }) || {};
+          for (const i in jsi) {
+            if (jsi[i].rb == "b") {
+              rba = "placed";
+            } else {
+              rba = "removed";
+            }
+            cmd = Cmd(
+              pg,
+              jsi[i].Now,
+              jsi[i].Name,
+              rba,
+              jsi[i].block,
+              jsi[i].x,
+              jsi[i].y,
+              jsi[i].z
+            );
+            pg = "";
+            actor?.runCommand(cmd);
+            a = false;
+          }
+        } catch (e) {
+          console.log(e);
+        }
+        if (a) {
+          let xyz = x + "/" + y + "/" + z;
+          cmd = Nodata(xyz);
+          actor?.runCommand(cmd);
+        }
+      },
+      {
+        option: command.enum("ProtectGuard.near", "near"),
+        r: int32_t,
+      }
+    )
+    .overload(
+      (param, origin) => {
+        const actor = origin.getEntity();
+        cmd = `tellraw @s {"rawtext":[{"text":"§l§f---- §3ProtectGuard Help §f----\n§3/pg §7help §f- Display more info for that command.\n§3/pg §7inspect §f - Turns the block inspector on or off.\n§3/pg §7rollback §3<params> §f- Rollback block data.\n§3/pg §7lookup §3<params> §f- Advanced block data lookup.\n§3/pg §7status §f- Displays the plugin status."}]}`;
         actor?.runCommand(cmd);
+      },
+      {
+        option: command.enum("ProtectGuard.help", "help"),
       }
-    },
-    {
-      option: command.enum("ProtectGuard.near", "near"),
-      r: int32_t,
-    }
-  )
-  .overload(
-    (param, origin) => {
-      const actor = origin.getEntity();
-      cmd = `tellraw @s {"rawtext":[{"text":"§l§f---- §3ProtectGuard Help §f----\n§3/pg §7help §f- Display more info for that command.\n§3/pg §7inspect §f - Turns the block inspector on or off.\n§3/pg §7rollback §3<params> §f- Rollback block data.\n§3/pg §7lookup §3<params> §f- Advanced block data lookup.\n§3/pg §7status §f- Displays the plugin status."}]}`;
-      actor?.runCommand(cmd);
-    },
-    {
-      option: command.enum("ProtectGuard.help", "help"),
-    }
-  );
-
+    );
+  command.find("pg").signature.permissionLevel =
+    CommandPermissionLevel.Operator;
+};
+events.serverOpen.on(() => RegisterCmd());
 events.blockDestroy.on((ev) => {
   if (ev.player.hasTag("inspect")) {
     a = true;
