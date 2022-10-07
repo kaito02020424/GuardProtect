@@ -10,6 +10,8 @@ Minecraft World Guard BDSX Plugin
 /pg inspect - Turns the block inspector on or off.
 
 /pg rollback <params> - Rollback block data.
+
+/pg restore <params> - Restore block data.
   
 /pg lookup <params> - Advanced block data lookup.
   
