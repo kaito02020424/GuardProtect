@@ -412,13 +412,25 @@ events.blockDestroy.on((ev) => {
     }
     return CANCEL;
   } else {
-    let TYear = date.getFullYear();
-    let TMonth = date.getMonth() + 1;
-    let TDate = date.getDate();
-    let THour = date.getHours();
-    let TMinutes = date.getMinutes();
-    let TSeconds = date.getSeconds();
-    var Now = TYear + TMonth + TDate + THour + TMinutes + TSeconds;
+    let TYear: string = date.getFullYear().toString();
+    var TMonth2: number = date.getMonth() + 1;
+    var TMonth: string = TMonth2.toString();
+    let TDate: string = date.getDate().toString();
+    let THour: string = date.getHours().toString();
+    let TMinutes: string = date.getMinutes().toString();
+    let TSeconds: string = date.getSeconds().toString();
+    var Now: string =
+      TYear +
+      "," +
+      TMonth +
+      "," +
+      TDate +
+      "," +
+      THour +
+      "," +
+      TMinutes +
+      "," +
+      TSeconds;
     var data = {
       Name: ev.player.getName(),
       rb: "r",
@@ -429,7 +441,7 @@ events.blockDestroy.on((ev) => {
       x: ev.blockPos.x,
       y: ev.blockPos.y,
       z: ev.blockPos.z,
-      date: Now.toString(),
+      date: Now,
     };
     masterData.push(data);
     let masterData2 = JSON.stringify({ masterData }, null, " ");
@@ -502,13 +514,25 @@ events.blockPlace.on((ev) => {
     }
     return CANCEL;
   } else {
-    let TYear = date.getFullYear();
-    let TMonth = date.getMonth() + 1;
-    let TDate = date.getDate();
-    let THour = date.getHours();
-    let TMinutes = date.getMinutes();
-    let TSeconds = date.getSeconds();
-    var Now = TYear + TMonth + TDate + THour + TMinutes + TSeconds;
+    let TYear: string = date.getFullYear().toString();
+    var TMonth2: number = date.getMonth() + 1;
+    var TMonth: string = TMonth2.toString();
+    let TDate: string = date.getDate().toString();
+    let THour: string = date.getHours().toString();
+    let TMinutes: string = date.getMinutes().toString();
+    let TSeconds: string = date.getSeconds().toString();
+    var Now: string =
+      TYear +
+      "," +
+      TMonth +
+      "," +
+      TDate +
+      "," +
+      THour +
+      "," +
+      TMinutes +
+      "," +
+      TSeconds;
     var data = {
       Name: ev.player.getName(),
       rb: "b",
@@ -516,7 +540,7 @@ events.blockPlace.on((ev) => {
       x: ev.blockPos.x,
       y: ev.blockPos.y,
       z: ev.blockPos.z,
-      date: Now.toString(),
+      date: Now,
     };
     masterData.push(data);
     let masterData2 = JSON.stringify({ masterData }, null, " ");
