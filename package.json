@@ -1,6 +1,6 @@
 {
   "name": "guardprotect",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Minecraft World Guard BDSX Plugin",
   "main": "ProtectGuard.js",
   "scripts": {
