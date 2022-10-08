@@ -4,7 +4,6 @@ Minecraft World Guard BDSX Plugin
 
 Put the whole folder in the plugins folder directly under BDSX
 
-```import './ProtectGuard';```
 ## Command List  
 
 /pg help - Display more info for that command.
