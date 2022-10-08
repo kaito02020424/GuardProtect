@@ -2,7 +2,7 @@
 Minecraft World Guard BDSX Plugin
 ## How to insert plugins
 
-Add code to index.ts in the same hierarchical folder to read
+Put the whole folder in the plugins folder directly under BDSX
 
 ```import './ProtectGuard';```
 ## Command List  
