@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/RuneNight/GuardProtect.git"
+    "url": "git+https://github.com/runekaito/GuardProtect.git"
   },
   "keywords": [
     "BDSX",
@@ -19,9 +19,9 @@
   "bdsxPlugin": true,
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/RuneNight/GuardProtect/issues"
+    "url": "https://github.com/runekaito/GuardProtect/issues"
   },
-  "homepage": "https://github.com/RuneNight/GuardProtect#readme",
+  "homepage": "https://github.com/runekaito/GuardProtect#readme",
   "devDependencies": {
     "@types/node": "^12.20.48",
     "bdsx": "file:../bdsx",
